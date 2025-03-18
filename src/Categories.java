@@ -1,15 +1,9 @@
-import java.util.ArrayList;
 import java.util.Scanner;
-/*
-* Cải tiến:
-Dùng ArrayList<String> thay vì mảng tĩnh: Giúp quản lý danh sách tên danh mục linh hoạt hơn.
-Tách riêng các hàm nhập dữ liệu số (inputInteger): Tránh lặp code và giúp nhập liệu an toàn hơn.
-Giới hạn mô tả danh mục (description) tối đa 255 ký tự: Tránh lỗi khi nhập mô tả quá dài.
-Cải tiến setCategoryName: Kiểm tra trùng lặp trước khi thay đổi tên danh mục.
-* */
+
 public class Categories implements IApp {
     private static int autoIncrementId = 1;
-    private static ArrayList<String> categoryNames = new ArrayList<>();
+    private static String[] categoryNames = new String[100];
+    private static int categoryCount = 0;
 
     private int categoryId;
     private String categoryName;
@@ -27,7 +21,7 @@ public class Categories implements IApp {
         this.priority = priority;
         this.description = description;
         this.status = status;
-        categoryNames.add(categoryName);
+        addCategoryName(categoryName);
     }
 
     public int getCategoryId() {
@@ -39,9 +33,9 @@ public class Categories implements IApp {
     }
 
     public void setCategoryName(String categoryName) {
-        if (validateName(categoryName) && !categoryNames.contains(categoryName)) {
-            categoryNames.remove(this.categoryName);
-            categoryNames.add(categoryName);
+        if (validateName(categoryName) && !isDuplicate(categoryName)) {
+            removeCategoryName(this.categoryName);
+            addCategoryName(categoryName);
             this.categoryName = categoryName;
         }
     }
@@ -74,16 +68,41 @@ public class Categories implements IApp {
         return name != null && name.length() >= 6 && name.length() <= 50;
     }
 
+    private boolean isDuplicate(String name) {
+        for (int i = 0; i < categoryCount; i++) {
+            if (categoryNames[i] != null && categoryNames[i].equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addCategoryName(String name) {
+        if (categoryCount < categoryNames.length) {
+            categoryNames[categoryCount++] = name;
+        }
+    }
+
+    private void removeCategoryName(String name) {
+        for (int i = 0; i < categoryCount; i++) {
+            if (categoryNames[i] != null && categoryNames[i].equals(name)) {
+                categoryNames[i] = categoryNames[--categoryCount];
+                categoryNames[categoryCount] = null;
+                break;
+            }
+        }
+    }
+
     @Override
     public void inputData(Scanner scanner) {
         System.out.print("Nhap ten danh muc: ");
         String name = scanner.nextLine();
-        while (!validateName(name) || categoryNames.contains(name)) {
+        while (!validateName(name) || isDuplicate(name)) {
             System.out.print("Ten khong hop le hoac da ton tai, vui long nhap lai: ");
             name = scanner.nextLine();
         }
         this.categoryName = name;
-        categoryNames.add(name);
+        addCategoryName(name);
 
         this.priority = inputInteger(scanner, "Nhap do uu tien: ");
 
